@@ -1,0 +1,9 @@
+INDEX VERSION 1.131
+D:\Programs\ImageGallery\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\3980689729.index
+\Gallery\src\main\java
+D:\Programs\ImageGallery\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\1040723899.index
+\Gallery\src\main\resources
+D:\Programs\ImageGallery\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\2115724473.index
+\Gallery\src\main\resources
+D:\Programs\ImageGallery\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\887908843.index
+\Gallery\src\main\java

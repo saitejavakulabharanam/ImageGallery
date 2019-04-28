@@ -1,0 +1,7 @@
+INDEX VERSION 1.4+D:\Programs\ImageGallery\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
+2482018037.index
+3628085169.index
+1033604330.index
+1917953848.index
+811648097.index
+862097099.index

@@ -1,0 +1,334 @@
+package com.Lomesh.controller;
+
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+import javax.validation.Valid;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
+
+
+@Controller
+public class ProductController {
+
+	private String prename=null;
+
+	protected static ArrayList<Product> listreturn(List<String> trans) {
+		ArrayList<Product> productlist = new ArrayList<Product>();
+		String[] words;
+		for (int i = 0; i < trans.size(); i++) {
+			Product prod = new Product();
+			words = trans.get(i).split(";");
+
+			prod.setId(words[0]);
+			prod.setName(words[1]);
+			prod.setDescription(words[2]);
+			prod.setMedium(words[3]);
+			prod.setSizel(Float.parseFloat(words[4]));
+			prod.setSizew(Float.parseFloat(words[5]));
+			prod.setPrice(Integer.parseInt(words[6]));
+			prod.setSold(words[7]);
+			prod.setCat_Id(words[8]);
+			prod.setCorshow(words[9]);
+			prod.setTopshow(words[10]);
+			
+			productlist.add(prod);
+		}
+		return productlist;
+	}
+
+	protected void deletefile(String id) throws IOException {
+
+		File file = new File(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		List<String> trans = new ArrayList<String>();
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		ArrayList<Product> productlist = new ArrayList<Product>();
+		productlist = listreturn(trans);
+		ArrayList<Product> newproductlist = new ArrayList<Product>();
+
+		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+
+		for (Product temp : productlist) {
+
+			if (id.equals(temp.getId())) {
+				
+				File ifile = new File("D:\\Programs\\ImageGallery\\Gallery\\src\\main\\webapp\\resources\\images\\"+temp.getName()+".jpg");
+	        	ifile.delete();
+			} else {
+
+				newproductlist.add(temp);
+
+			}
+		}
+
+		int n = 0;
+		for (Product temp : newproductlist) {
+			writer.write(temp.getId() + ';' + temp.getName() + ';' + temp.getDescription() + ';' + temp.getMedium()
+					+ ';' + temp.getSizel() + ';' + temp.getSizew() + ';' + temp.getPrice() + ';' + temp.getSold() + ';'
+					+ temp.getCat_Id()+ ';' + temp.getCorshow()+ ';' + temp.getTopshow());
+			if (n != newproductlist.size() - 1) {
+				writer.write(System.getProperty("line.separator"));
+			}
+			n = n + 1;
+		}
+
+		writer.close();
+	}
+
+	protected void writefile(@Valid Product product) throws IOException {
+
+		File file = new File(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
+		if (file.length() != 0) {
+			writer.append(System.getProperty("line.separator"));
+		}
+
+		writer.append(product.getId() + ';' + product.getName() + ';' + product.getDescription() + ';'
+				+ product.getMedium() + ';' + product.getSizel() + ';' + product.getSizew() + ';' + product.getPrice()
+				+ ';' + product.getSold() + ';' + product.getCat_Id()+ ';' + product.getCorshow()+ ';' + product.getTopshow());
+
+		writer.close();
+	}
+
+	@ModelAttribute
+	public Product returnObject() {
+		return new Product();
+	}
+
+	protected static List<String> readFile(String filename) {
+		List<String> records = new ArrayList<String>();
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(filename));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				records.add(line);
+			}
+			reader.close();
+			return records;
+		} catch (Exception e) {
+			System.err.format("Exception occurred trying to read '%s'.", filename);
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@RequestMapping(value = "/productlist")
+	public ModelAndView Productlist() throws IOException {
+
+		List<String> trans = new ArrayList<String>();
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		ArrayList<Product> productlist = new ArrayList<Product>();
+		productlist = listreturn(trans);
+
+		ModelAndView mv = new ModelAndView("adminpage");
+		mv.addObject("listprod", 0);
+		mv.addObject("productList", productlist);
+		return mv;
+	}
+
+	@RequestMapping("/Addproduct")
+	public ModelAndView AddproductPage() {
+		List<String> trans = new ArrayList<String>();
+		ArrayList<Product> productlist = new ArrayList<Product>();
+		ArrayList<Category> categorylist = new ArrayList<Category>();
+
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		productlist = listreturn(trans);
+
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Categorylist.txt");
+
+		categorylist = CategoryController.listreturn(trans);
+
+		ModelAndView mv = new ModelAndView("adminpage");
+		mv.addObject("add", 1);
+		mv.addObject("categoryList", categorylist);
+		mv.addObject("productList", productlist);
+		mv.addObject("listprod", 0);
+		mv.addObject("listcat", 0);
+		return mv;
+	}
+
+	@RequestMapping(value = "/Productreg", method = RequestMethod.POST)
+	public ModelAndView Productregister(@Valid @ModelAttribute("product") Product product, BindingResult result)
+			throws IOException {
+
+		ModelAndView mv = new ModelAndView("adminpage");
+		List<String> trans = new ArrayList<String>();
+		ArrayList<Product> productlist = new ArrayList<Product>();
+		ArrayList<Category> categorylist = new ArrayList<Category>();
+
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Categorylist.txt");
+
+		categorylist = CategoryController.listreturn(trans);
+
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		productlist = listreturn(trans);
+		
+		
+		if (result.hasErrors()) {
+			System.out.println("error");
+			mv.addObject("add", 1);
+			mv.addObject("categoryList", categorylist);
+			mv.addObject("productList", productlist);
+			mv.addObject("listprod", 0);
+			mv.addObject("listcat", 0);
+		} else {
+			MultipartFile image = product.getImage();
+			Path path;
+			path = Paths.get("D://Programs//ImageGallery//Gallery//src//main//webapp//resources//images//" + product.getName()
+					+ ".jpg");
+			if (image != null && !image.isEmpty()) {
+				try {
+					image.transferTo(new File(path.toString()));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+			writefile(product);
+
+		}
+
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		productlist = listreturn(trans);
+
+		mv.addObject("productList", productlist);
+		mv.addObject("listprod", 0);
+		return mv;
+	}
+
+	@RequestMapping(value = "/Updateprod{id}")
+	public ModelAndView UpdateprodPage(@PathVariable("id") String id) throws Exception {
+
+		List<String> trans = new ArrayList<String>();
+		ArrayList<Product> productlist = new ArrayList<Product>();
+		ArrayList<Category> categorylist = new ArrayList<Category>();
+
+		ModelAndView mv = new ModelAndView("adminpage");
+
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Categorylist.txt");
+
+		categorylist = CategoryController.listreturn(trans);
+
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		productlist = listreturn(trans);
+
+		for (Product temp : productlist) {
+			if (id.equals(temp.getId())) {
+				mv.addObject("prod", temp);
+prename=temp.getName();
+			}
+		}
+
+		mv.addObject("add", 1);
+		mv.addObject("edit", 1);
+		mv.addObject("productList", productlist);
+		mv.addObject("categoryList", categorylist);
+		mv.addObject("listprod", 0);
+		mv.addObject("listcat", 0);
+		return mv;
+	}
+
+	@RequestMapping(value = "/Updateproduct", method = RequestMethod.POST)
+	public ModelAndView Updateproduct(@Valid @ModelAttribute("product") Product prod,
+			@RequestParam("description") String description, BindingResult result) throws IOException {
+		List<String> trans = new ArrayList<String>();
+		ArrayList<Product> productlist = new ArrayList<Product>();
+		prod.setDescription(description);
+		
+		
+		BufferedImage img = null;
+		try {
+		    img = ImageIO.read(new File("D:\\Programs\\ImageGallery\\Gallery\\src\\main\\webapp\\resources\\images\\"+prename+".jpg"));
+		} catch (IOException e) {
+		}
+		
+		
+    	
+		
+		deletefile(prod.getId());
+		
+		MultipartFile image = prod.getImage();
+		Path path;
+		path = Paths.get("D://Programs//ImageGallery//Gallery//src//main//webapp//resources//images//" + prod.getName()
+				+ ".jpg");
+		if (image != null && !image.isEmpty()) {
+			try {
+				image.transferTo(new File(path.toString()));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		else {
+			
+			ImageIO.write(img, "jpg", new File("D:\\Programs\\ImageGallery\\Gallery\\src\\main\\webapp\\resources\\images\\"+prod.getName()+".jpg"));
+			
+		}
+		
+		writefile(prod);
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		productlist = listreturn(trans);
+		ModelAndView mv = new ModelAndView("adminpage");
+		mv.addObject("productList", productlist);
+		mv.addObject("listprod", 0);
+		return mv;
+	}
+
+	@RequestMapping(value = "/Deleteproduct{id}")
+	public ModelAndView deleteProduct(@PathVariable("id") String id) throws Exception {
+
+		List<String> trans = new ArrayList<String>();
+		ArrayList<Product> productlist = new ArrayList<Product>();
+
+		deletefile(id);
+
+		trans = readFile(
+				"D:\\Programs\\ImageGallery\\Gallery\\src\\main\\java\\com\\Lomesh\\data\\Productlist.txt");
+
+		productlist = listreturn(trans);
+		ModelAndView mv = new ModelAndView("adminpage");
+		mv.addObject("productList", productlist);
+		mv.addObject("listprod", 0);
+		return mv;
+	}
+
+}
